@@ -1,0 +1,194 @@
+task: bboxNeRF
+
+gpus: [0,1,2]
+
+exp_name: 'bboxNeRF_uncountable'
+
+####
+DP: False
+distributed: True
+trainer_type: bboxNeRF
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: bboxNeRF
+loss_type: bboxNeRF
+optimizer_type: bboxNeRF
+
+evaluator_module: lib.evaluators.eval_fid
+visualizer_module: lib.visualizers.bboxnerf
+
+
+####
+fix_random: True
+random_seed: 42
+is_debuging: False
+
+ratio: 0.25
+max_obj_num: 10
+use_occupancy_mask: True
+render_road: False
+render_obj: False
+render_uncountable: True
+render_sky: False
+valid_object: ['building','car','truck','garage','bus']
+min_visible_pixel: 1
+#['building','truck','bus','caravan','trailer','train','motorcycle','bicycle','garage','stop','smallpole','lamp','trash bin','vending machine','box'] 
+# start: 0
+# train_frames: -1
+# test_frames: -1
+
+# trained model
+trained_model_dir: 'out/trained_model'
+trained_config_dir: 'out/trained_config'
+# recorder
+record_dir: 'out/record'
+result_dir: 'out/result'
+out_img_dir: 'out/img'
+
+
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'stylegan'
+    generator_test_type: 'urbangiraffe'
+
+    generator_kwargs:
+        obj_decoder_type: 'giraffe'
+        road_decoder_type: 'style'
+        uncountable_decoder_type: 'local_feature'
+        sky_decoder_type: 'sky'
+        z_map_generator_type: 'SPADE'
+        z_grid_generator_type: 'SPADE3D'
+        nerual_renderer_type: 'giraffeNR'
+
+        return_alpha_map: True
+        use_nerual_renderer: False
+        use_z_map: True
+        z_dim_global: 256
+        semantic_dim: 16
+        z_dim_obj: 80
+        z_dim_road: 80
+        z_dim_unc: 80
+        ray_voxel_sampling: False
+
+        z_trainable: True
+        n_samples_obj: 24
+        n_samples_road: 3
+        n_samples_uncountable: 48
+        n_sample_sky: 1
+
+        obj_decoder_kwargs:
+            hidden_size: 128
+            n_blocks: 8
+            n_blocks_view: 1
+            skips: [4]
+            use_viewdirs: True
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            z_dim: 80
+            rgb_out_dim: 3
+            final_sigmoid_activation: True
+            downscale_p_by: 2.
+            positional_encoding: "normal"
+            gauss_dim_pos: 10
+            gauss_dim_view: 4
+            gauss_std: 4.
+
+        z_map_generator_kwargs:
+            ngf: 64
+            z_dim: 64
+            max_nc: 256
+            use_vae: True
+            num_upsampling_layers: 'normal'
+            crop_size: 352
+            aspect_ratio: 3.744
+            semantic_nc: 7
+            label_nc: 10
+            output_nc: 128
+            norm_G: 'spadeinstance5x5'
+
+        z_grid_generator_kwargs:
+            h: 64
+            w: 64
+            l: 64
+            ngf: 32
+            z_dim: 256
+            max_nc: 128
+            use_vae: True
+            num_upsampling_layers: 'normal'
+            semantic_nc: 10
+            label_nc: 10
+            output_nc: 128
+            norm_G: 'spadeinstance5x5'
+
+        # road_decoder_kwargs:
+        #     n_layers: 8
+        #     channels: 128
+        #     out_channel: 3
+        #     z_dim: 80
+        #     n_freq_posenc: 10
+        #     n_freq_posenc_views: 4
+        #     skips: [4]
+
+        uncountable_decoder_kwargs:
+            in_channels: 32
+            n_freq_posenc: 4
+            n_freq_posenc_views: 4
+            use_final_sigmoid: True
+            out_channels_c: 3
+            use_seg: True
+
+
+        sky_decoder_kwargs:
+            style_dim: 256
+            out_channels_c: 3
+            use_final_sigmoid: True
+
+        neural_render_kwargs:
+            in_channels: 128
+    discriminator_kwargs:
+        in_channels: 3
+        n_feat: 512 
+        img_size: 64
+
+
+ep_iter: 1000
+save_ep: 1
+eval_ep: 1
+save_latest_ep: 1
+log_interval: 1
+img_log_interval: 100
+train:
+    frame_num: 10
+    batch_size: 2
+    optim: 'adam'
+    lr: 3e-4
+    lr_d: 1e-4
+    weight_decay: 1e-4
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 0
+    shuffle: True
+    #loss
+    weight_rgb: 1.
+    use_whole_rgb_loss: False
+    use_occupancy_loss: False
+    weight_occupancy: 1 # 0.x1 means test new loss
+
+test:
+    dataset: KITTI360Val
+    batch_size: 2
+    frame_num: 1000
+
+train_dataset:
+    data_root: '/data/ybyang/KITTI-360/'
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'train'
+
+test_dataset:
+    data_root: '/data/ybyang/KITTI-360/'
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'test'

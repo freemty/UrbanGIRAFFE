@@ -1,0 +1,146 @@
+gpus: [2,3,4,5]
+task: kitti-360
+exp_name: 'urbangiraffe_kitti360_depth'
+# 'eg3dNR_mod'
+exp_comment: 'old_school'
+
+is_debug: False
+####
+fix_random: True
+z_far: 48
+z_far_render: 64
+ratio: 0.25
+super_resolution: 2
+patch_size: 128
+vertex_threshold: 5
+rate_threshold: 0.25
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+render_obj: False
+render_stuff: True
+render_sky: True
+use_occupancy_mask: True
+use_patch_occupancy_mask: False
+use_patch_discriminator: False
+use_depth: True
+
+stuff_semantic_list: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    'truck','train','caravan','bus','trailer',
+    'fence','guard rail','trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light']
+    
+# Network
+network_kwargs:
+    discriminator_type: 'StyleGAN2'
+    generator_kwargs:
+        neural_renderer_type: 'legacyNR'
+        z_grid_generator_type: 'SPADE3D'
+        stuff_decoder_type: 'stuff_legacy'
+        sky_decoder_type: 'sky_legacy'
+        n_vox_intersection: 8
+        n_samples_stuff: 8
+        n_samples_obj: 16
+        ray_voxel_sampling: True
+        use_neural_renderer: True
+        sky_decoder_kwargs:
+            in_channel: 3
+            hidden_channel: 128
+            out_channel: 64
+            style_channel: 256
+            n_block_num: 4
+            use_positonal_encoding: True
+            n_freq_posenc: 10
+            final_tanh: False
+
+        stuff_decoder_kwargs:
+            in_channel: 3
+            hidden_channel: 256
+            out_channel: 64
+            w_channel: 16
+            style_channel: 512
+            n_block_num: 4
+            use_viewdirs: False
+            use_positonal_encoding: True
+            n_freq_posenc_pts: 10
+            n_freq_posenc_w: 4
+            n_freq_posenc_views: 4
+            final_tanh: False
+
+        z_grid_generator_kwargs:
+            h: 64
+            w: 64
+            l: 64
+            ngf: 16
+            z_dim: 64
+            max_nc: 128
+            nhidden: 64
+            oasis_zdim: 8
+            use_oasis: True
+            num_upsampling_layers: 'normal'
+            semantic_nc: 42
+            norm_G: 'spadeinstance5x5'
+            use_uncondition_layer: True
+            use_out_normalize: True
+
+        neural_render_kwargs:
+            deep: True
+            in_channel : 32
+            in_res : 128
+            out_res : 256
+
+
+        
+    discriminator_kwargs:
+        init_res : 4
+        max_channel : 256
+        # resolution: [94, 352]
+        # use_depth_channel: False
+        # in_channels: 3
+        # n_feat: 512
+        # img_size: 512
+    
+
+render:
+    ckpt_dir: ''
+    # '/data/ybyang/out/trained_model/kitti-360/urbangiraffe_kitti360_depth/gan:1.0_l2:10.0_l1_depth:10.0_perceptual:1.0_gan_reg:10.0_default/34.pth'
+
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 4e-4
+    lr_d: 2e-4
+    weight_decay: 0.
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        l2: 10.
+        l1_depth: 10.
+        perceptual: 10.
+        gan_reg: 10.0
+        # gan_obj: 1.0
+
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+    
+    num_workers: 8
+    use_trajectory: False
+    shuffle: True
+    #loss
+train_dataset:
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'train'
+
+test_dataset:
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'test'
+

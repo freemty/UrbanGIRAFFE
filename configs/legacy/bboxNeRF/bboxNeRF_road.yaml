@@ -1,0 +1,193 @@
+task: bboxNeRF
+gpus: [5]
+exp_name: 'bboxNeRF_road'
+
+####
+trainer_type: bboxNeRF
+dataset_train_type: bboxNeRF
+dataset_test_type: bboxNeRF
+network_type: bboxNeRF
+loss_type: bboxNeRF
+optimizer_type: bboxNeRF
+####
+fix_random: True
+random_seed: 42
+is_debuging: False
+
+return_alpha_map: True
+use_nerual_render: False
+z_dim_obj: 128
+z_dim_road: 128
+z_dim_unc: 128
+
+
+n_samples_obj: 24
+n_samples_road: 5
+n_sample_uncountable: 24
+n_sample_sky: 5
+
+random_frames: False
+start: 503
+train_frames: 501
+test_frames: 501
+
+render_road: True
+render_obj: False
+render_uncountable: False
+render_sky: False
+
+# Obj render detial
+max_obj_num: 1
+is_render_given_semantic: True
+render_semantic: ['car']
+is_render_given_bbx: False
+render_bbx_ids: [5180] #
+
+src_views_num: 3
+volume_pad: 0
+ratio: 0.25
+depth_planes_num: 128
+N_rays: 512
+chunk_size: 2048
+N_samples: 3
+white_bkgd: False
+render_scale: 0.5
+input_ratio: 0.5
+#src_views_num: 4
+net_width: [512]
+fr_pos: 15
+
+
+evaluator_module: lib.evaluators.eval_miou
+visualizer_module: lib.visualizers.bboxnerf
+
+# trained model
+trained_model_dir: 'out/trained_model'
+trained_config_dir: 'out/trained_config'
+# recorder
+record_dir: 'out/record'
+result_dir: 'out/result'
+#
+out_img_dir: 'out/img'
+
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    generator_kwargs:
+        obj_decoder_type: 'giraffe'
+        road_decoder_type: 'style'
+        z_map_generator_type: 'SPADE'
+        use_occupancy_mask: False
+        return_alpha_map: True
+        use_nerual_render: False
+        use_z_map: True
+        z_dim_global: 108
+        z_dim_obj: 128
+        z_dim_road: 128
+        z_dim_unc: 128
+
+        z_trainable: True
+        n_samples_obj: 24
+        n_samples_road: 3
+        n_sample_uncountable: 5
+        n_sample_sky: 5
+
+        obj_decoder_kwargs:
+            hidden_size: 128
+            n_blocks: 4
+            n_blocks_view: 1
+            skips: [2]
+            use_viewdirs: True
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            z_dim: 128
+            rgb_out_dim: 3
+            final_sigmoid_activation: True
+            downscale_p_by: 2.
+            positional_encoding: "normal"
+            gauss_dim_pos: 10
+            gauss_dim_view: 4
+            gauss_std: 4.
+
+        z_map_generator_kwargs:
+            ngf: 108
+            z_dim: 108
+            use_vae: True
+            num_upsampling_layers: 'normal'
+            crop_size: 352
+            aspect_ratio: 3.744
+            semantic_nc: 7
+            label_nc: 10
+            output_nc: 108
+            norm_G: 'spadeinstance5x5'
+
+
+        road_decoder_kwargs:
+            n_layers: 4
+            channels: 128
+            out_channel: 3
+            z_dim: 128
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            skips: [2]
+
+        uncountable_decoder_kwargs:
+            n_layers: 4
+            channels: 128
+            out_channel: 3
+            z_dim: 128
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            skips: [2]
+
+        sky_decoder_kwargs:
+            n_layers: 2
+            channels: 64
+            out_channel: 3
+            z_dim: 16
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            skips: [4]
+
+train:
+    batch_size: 8
+    lr: 5e-4
+    weight_decay: 0.
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 3
+    shuffle: True
+    
+    #loss
+    weight_rgb: 1.
+    use_whole_rgb_loss: False
+    use_occupancy_loss: True
+    weight_occupancy: 1 # 0.x1 means test new loss
+
+
+test:
+    dataset: KITTI360Val
+    batch_size: 1
+
+
+train_dataset:
+    data_root: 'datasets/KITTI-360_mini/'
+    seq_list: [3]
+    split: 'train'
+
+test_dataset:
+    data_root: 'datasets/KITTI-360_mini/'
+    seq_list: [3]
+    split: 'test'
+
+
+
+ep_iter: 1000
+img_log_interval: 200
+save_ep: 1
+eval_ep: 1
+save_latest_ep: 1
+log_interval: 1

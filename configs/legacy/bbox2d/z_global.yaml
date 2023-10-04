@@ -1,0 +1,9 @@
+task: urbanGIRAFFE_2d
+
+exp_name: 'default'
+gpus: [3]
+
+network_kwargs:
+    generator_kwargs:
+        feature_type: 'z' # 'SPADE', 'SPADE_free', 'SPADE_hybrid'
+        pts_type: 'global'

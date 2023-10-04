@@ -1,0 +1,103 @@
+task: clevr
+
+exp_name: 'giraffe_clevr'
+gpus: [0,1]
+is_debug: False
+####
+
+super_resolution: 2
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe_clevr
+dataset_test_type: urbangiraffe_clevr
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+render_obj: True
+render_bg: True
+    
+# Network
+network_kwargs:
+    generator_type: 'giraffe'
+    generator_test_type: 'giraffe'
+    discriminator_type: 'stylegan'
+
+    generator_kwargs:
+        obj_decoder_type: 'giraffe_ins'
+        bg_decoder_type: 'giraffe_bg'
+        use_neural_renderer: True
+
+        z_dim_global: 512
+        semantic_dim: 16
+        z_dim_obj: 256
+        feature_dim: 16
+
+        z_trainable: False
+        n_samples_obj: 12
+        n_samples_bg: 12
+        depth_range: 24
+
+        bg_decoder_kwargs:
+            # z_dim: 64
+            c_dim: 0
+            hidden_size: 128
+            n_blocks: 4
+            n_blocks_view: 1
+            skips: [2]
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            rgb_out_dim: 3 
+            use_viewdirs: True
+            final_sigmoid_activation: True
+
+        obj_decoder_kwargs:
+            c_dim: 0
+            # z_dim: 64
+            use_semantic_aware: False
+            use_viewdirs: False
+            giraffe_decoder_kwargs:
+                hidden_size: 128
+                n_blocks: 4
+                n_blocks_view: 1
+                skips: [2]
+                n_freq_posenc: 10
+                n_freq_posenc_views: 4
+                rgb_out_dim: 3 
+                out_channels_feat: 64
+                final_sigmoid_activation: False
+
+        neural_render_kwargs:
+            in_channels: 16
+
+train:
+    batch_size: 8
+    optim: 'adam'
+    lr: 4e-4
+    lr_d: 1e-4
+    weight_decay: 1e-4
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        gan_reg: 10.0
+    
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 100
+    num_workers: 0
+    shuffle: True
+    #loss
+    
+test:
+    ckpt_dir: ''
+    dataset: clevr
+    use_occupancy: False
+    batch_size: 16
+    frame_num: 10000
+    use_trajectory: False
+    test_given_frame: False
+    render_frame_list: [320,484,611,30621]
+

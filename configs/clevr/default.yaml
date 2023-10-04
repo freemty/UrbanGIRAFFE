@@ -1,0 +1,126 @@
+task: clevr
+# exp_name: 'urbangiraffe_clevr'
+# gpus: [2,3,4,5,0,1]
+is_debug: False
+####
+
+
+img_size_raw: (256, 256)
+ratio: 1.
+super_resolution: 1
+patch_size: 64
+
+is_kitti360: False
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe_clevr
+dataset_test_type: urbangiraffe_clevr
+dataset_render_type: urbangiraffe_clevr
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+use_patch_occupancy_mask: False
+render_obj: False
+render_stuff: False
+render_sky: False
+render_bg: False
+use_patch_discriminator: False
+use_occupancy_mask: False
+use_depth: False
+use_alpha: False
+use_data_augment: False
+
+
+voxel_range: [[-8,8],[0,4],[-8,8]]
+stuff_semantic_list: ['ground', 'wall']
+stuff_semantic_list_render: ['ground', 'wall']
+# Network
+network_kwargs:
+    discriminator_kwargs:
+        is_kitti_img: False
+        in_channels: 3
+        n_feat: 512 
+        img_size: 256
+    discriminator_obj_kwargs:
+        in_channels: 3
+        n_feat: 256
+        img_size: 64
+        use_pose_condition: False
+        mapping_layer_num: 2
+
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 2e-4
+    weight_decay: 0.
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        # l2: 10.0
+        # gan_obj: 1.
+        gan_reg: 0.0
+        # perceptual: 3.0
+        # l1_depht: 10.0
+        # kl: 0.05
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+
+    car_lr_mul: 1.
+    building_lr_mul: 1.
+    sky_lr_mul: 1.
+    mapping_lr_mul: 0.1
+    
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 100
+    num_workers: 8
+    shuffle: True
+    #loss
+
+render:
+    # dataset: KITTI360Val
+    batch_size: 1
+    step_num: 32
+    frame_num: 100
+    task_list: ['clevr_video']
+    # ,'render_object_figure_clevr','render_object_figure_clevr']
+
+    ckpt_dir: ''
+    render_fps: 5
+    use_trajectory: False
+    render_given_frame: True
+    render_frame_list: [2130,2131,2132,2133,2134]
+    # [2100,2101,2102,2103,2104,2105,2106,2107,2108,2109,2110,2111,2112,2113,2114,2115,2116,2117,2118,2119,2120,2121,2122,2123,2124,2125,2126,2127,2128,2129,]
+    # [1789,1890,2893]
+test:
+    ckpt_dir: ''
+    dataset: clevr
+    use_occupancy: False
+    batch_size: 4
+    frame_num: 5000
+    use_trajectory: False
+    test_given_frame: False
+    render_frame_list: [320,484,611,30621]
+
+
+
+train_dataset:
+    split: 'train'
+    seq_list: [1,2,3,4,5,6,7,8,9]
+    data_root: '/data/ybyang/clevrtex_train'
+
+test_dataset:
+    split: 'test'
+    seq_list: [1,2,3,4,5,6,7,8,9]
+    data_root: '/data/ybyang/clevrtex_train'
+
+render_dataset:
+    split: 'render'
+    seq_list: [1,2,3,4,5,6,7,8,9]
+    data_root: '/data/ybyang/clevrtex_train'

@@ -1,0 +1,140 @@
+task: GIRAFFE
+gpus: [0,1,2,3]
+exp_name: 'GIRAFFE'
+is_debug: False
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+
+max_obj_num: 4
+valid_object: ['car']
+min_visible_pixel: 
+    car : 5000
+
+
+render_bg: True
+render_obj: True
+use_depth: False
+use_patch_discriminator: False
+
+stuff_semantic_list: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    'truck','train','caravan','bus','trailer',
+    'fence','guard rail','trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light']
+
+network_kwargs:
+    generator_type: 'giraffe'
+    generator_test_type: 'giraffe'
+    discriminator_type: 'stylegan'
+
+    generator_kwargs:
+        obj_decoder_type: 'giraffe_ins'
+        bg_decoder_type: 'giraffe_bg'
+        use_neural_renderer: True
+
+        z_dim_global: 512
+        semantic_dim: 16
+        z_dim_obj: 256
+        feature_dim: 16
+
+        z_trainable: False
+        n_samples_obj: 12
+        n_samples_bg: 18
+        depth_range: 24
+
+        bg_decoder_kwargs:
+            # z_dim: 64
+            c_dim: 0
+            hidden_size: 128
+            n_blocks: 8
+            n_blocks_view: 1
+            skips: [4]
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            rgb_out_dim: 3 
+            use_viewdirs: True
+            final_sigmoid_activation: True
+
+        obj_decoder_kwargs:
+            c_dim: 0
+            # z_dim: 64
+            use_semantic_aware: False
+            use_viewdirs: False
+            giraffe_decoder_kwargs:
+                hidden_size: 128
+                n_blocks: 4
+                n_blocks_view: 1
+                skips: [2]
+                n_freq_posenc: 10
+                n_freq_posenc_views: 4
+                rgb_out_dim: 3 
+                final_sigmoid_activation: True
+
+        neural_render_kwargs:
+            in_channels: 16
+
+    discriminator_kwargs:
+        in_channels: 3
+        n_feat: 512 
+        img_size: 512
+train:
+    batch_size: 2
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 4e-4
+    beta1: 0.0
+    beta2: 0.99
+    weight_decay: 1e-4
+    mapping_lr_mul: 0.01
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 5
+    shuffle: True
+    use_trajectory: False
+    #loss
+    weight_rgb: 1.
+    use_whole_rgb_loss: False
+    use_occupancy_loss: True
+    weight_occupancy: 1 # 0.x1 means test new loss
+    frame_num: -1
+    loss_weight:
+        gan: 1.
+        gan_reg: 10.0
+render:
+    # dataset: KITTI360Val
+    ckpt_dir: ''
+    batch_size: 1
+    frame_num: 10
+    task_list: ['move_forward']
+    step_num: 16
+    render_given_frame: True
+    render_frame_list: [320]
+
+
+test:
+    ckpt_dir: '/data/ybyang/out/trained_model/GIRAFFE/GIRAFFE_default/None/latest.pth'
+    dataset: KITTI360Val
+    batch_size: 4
+    frame_num: 1000
+    use_trajectory: False
+    test_given_frame: False
+    render_frame_list: [320]
+
+
+
+train_dataset:
+    # data_root: '/data/ybyang/KITTI-360/'
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'train'
+test_dataset:
+    # data_root: '/data/ybyang/KITTI-360/'
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'test'

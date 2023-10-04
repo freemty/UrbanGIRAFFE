@@ -1,0 +1,178 @@
+gpus: [0,1,2,3,4,5]
+task: 'kitti'
+exp_name: 'urbangiraffe_kitti'
+exp_comment: 'fix_sky'
+
+is_debug: False
+####
+fix_random: True
+z_far: 48
+z_far_render: 64
+ratio: 0.5
+super_resolution: 2
+patch_size: 128
+vertex_threshold: 5
+rate_threshold: 0.25
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe_kitti
+dataset_test_type: urbangiraffe_kitti
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+render_obj: True
+render_stuff: True
+render_sky: True
+use_occupancy_mask: True
+use_patch_occupancy_mask: False
+use_patch_discriminator: False
+use_depth: False
+
+max_obj_num: 4
+valid_object: ['car']
+min_visible_pixel: 
+    car : 5000
+
+# Network
+stuff_semantic_list: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    # 'truck','train','caravan','bus','trailer',
+    'fence','guard rail',
+    # 'trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light'
+    ]
+    
+
+# Network
+network_kwargs:
+    discriminator_type: 'StyleGAN2'
+    discriminator_obj_type: 'StyleGAN2'
+    generator_kwargs:
+        z_trainable: False
+        obj_decoder_type: 'giraffe_ins'
+        stuff_decoder_type: 'stuff'
+        sky_decoder_type: 'sky'
+        neural_renderer_type: 'eg3dNR'
+        z_grid_generator_type: 'VolumeGenerator'
+        n_vox_intersection: 12
+        n_samples_stuff: 8
+        n_samples_obj: 8
+        n_vox_intersection_render: 12
+        n_samples_stuff_render: 8
+        n_samples_obj_render: 12
+        ray_voxel_sampling: True
+        use_neural_renderer: True
+        sky_decoder_kwargs:
+            in_channel: 3
+            hidden_channel: 128
+            out_channel: 64
+            style_channel: 256
+            n_block_num: 4
+            use_positonal_encoding: True
+            n_freq_posenc: 10
+            final_tanh: False
+
+        stuff_decoder_kwargs:
+            in_channel: 3
+            hidden_channel: 256
+            out_channel: 64
+            w_channel: 16
+            style_channel: 512
+            n_block_num: 4
+            use_viewdirs: False
+            use_seg: False
+            use_positonal_encoding: True
+            n_freq_posenc_pts: 10
+            n_freq_posenc_w: 4
+            n_freq_posenc_views: 4
+            final_tanh: False
+
+        z_grid_generator_kwargs:
+            init_res : 4
+            volume_res : [64,64,64]
+            max_channel : 512
+            out_channel : 32
+            semantic_channel : 42
+            spade_hidden_channel : 128
+            data_normalize_type : 'instance'
+            weight_normalize_type : 'equal_lr'
+            noise_type : 'oasis'
+            z_dim : 256
+            z_dim_oasis : 64
+            sparse_conv : False
+            kernel_size : 3
+            final_unconditional_layer : True
+            final_tanh : False
+
+        neural_render_kwargs:
+            deep: True
+            in_channel : 32
+        
+    discriminator_kwargs:
+        init_res : 4
+        max_channel : 256
+    discriminator_obj_kwargs:
+        init_res : 4
+        max_channel : 256
+
+render:    
+    task_list: ['render_rebuttal']
+    render_frame_list: [10455]
+    # render_frame_list: [21710, 10455, 20080, 60915]
+
+    ckpt_dir: '/data/ybyang/out/trained_model/kitti/urbangiraffe_kitti/fix_sky_gan:1.0_l2:10.0_perceptual:10.0_gan_reg:10.0_0.50,2/latest.pth'
+test:
+    batch_size: 1
+    use_occupancy: True
+
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 2e-3
+    lr_d: 2e-3
+    weight_decay: 0.
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        l2: 10.
+        # l1_depth: 10.
+        perceptual: 10.
+        gan_reg: 10.0
+        # gan_obj: 1.0
+
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+    
+    num_workers: 0
+    use_trajectory: False
+    shuffle: True
+    #loss
+train_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/ybyang/semantic-kitti'
+    seq_list: [0,1,2,3,4,5,6,7]
+    split: 'train'
+    use_full: True
+
+
+split_rate: 0.2
+split_chunk_size: 200
+
+test_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/ybyang/semantic-kitti'
+    seq_list: [0,1,2,3,4,5,6,7,8]
+    split: 'test'
+    use_full: True
+
+render_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/ybyang/semantic-kitti'
+    seq_list: [0,1,2,3,4,5,6,7,8]
+    split: 'render'
+    use_full: True
+

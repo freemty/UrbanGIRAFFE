@@ -1,0 +1,159 @@
+gpus: [2,3,4,5]
+task: kitti-360
+exp_name: 'urbangiraffe_kitti360'
+exp_comment: ''
+
+is_debug: False
+####
+fix_random: True
+z_far: 48
+z_far_render: 64
+ratio: 0.5
+super_resolution: 2
+patch_size: 128
+
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+render_obj: False
+render_stuff: True
+render_sky: True
+use_occupancy_mask: False
+use_patch_occupancy_mask: False
+use_patch_discriminator: False
+use_depth: True
+
+# vertex_threshold: 4
+# rate_threshold: 0.05
+# max_obj_num: 4
+# valid_object: ['car']
+# min_visible_pixel: 
+#     car : 5000
+# Network
+stuff_semantic_list: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    # 'truck','train','caravan','bus','trailer',
+    'fence','guard rail',
+    # 'trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light'
+    ]
+    
+
+# Network
+network_kwargs:
+    discriminator_type: 'StyleGAN2'
+    discriminator_obj_type: 'StyleGAN2'
+    generator_kwargs:
+        obj_decoder_type: 'giraffe_ins'
+        stuff_decoder_type: 'stuff'
+        sky_decoder_type: 'sky'
+        neural_renderer_type: 'eg3dNR'
+        z_grid_generator_type: 'VolumeGenerator'
+        n_vox_intersection: 6
+        n_samples_stuff: 4
+        n_samples_obj: 8
+        n_vox_intersection_render: 12
+        n_samples_stuff_render: 12
+        n_samples_obj_render: 16
+        ray_voxel_sampling: True
+        use_neural_renderer: True
+        sky_decoder_kwargs:
+            in_channel: 3
+            hidden_channel: 128
+            out_channel: 64
+            style_channel: 256
+            n_block_num: 4
+            use_positonal_encoding: True
+            n_freq_posenc: 10
+            final_tanh: False
+
+        stuff_decoder_kwargs:
+            in_channel: 3
+            hidden_channel: 256
+            out_channel: 64
+            w_channel: 16
+            style_channel: 512
+            n_block_num: 4
+            use_viewdirs: False
+            use_seg: False
+            use_positonal_encoding: True
+            n_freq_posenc_pts: 10
+            n_freq_posenc_w: 4
+            n_freq_posenc_views: 4
+            final_tanh: False
+
+        z_grid_generator_kwargs:
+            init_res : 4
+            volume_res : [64,64,64]
+            max_channel : 512
+            out_channel : 32
+            semantic_channel : 42
+            spade_hidden_channel : 128
+            data_normalize_type : 'instance'
+            weight_normalize_type : 'equal_lr'
+            noise_type : 'oasis'
+            z_dim : 256
+            z_dim_oasis : 64
+            sparse_conv : False
+            kernel_size : 3
+            final_unconditional_layer : True
+            final_tanh : False
+
+        neural_render_kwargs:
+            deep: True
+            in_channel : 32
+        
+    discriminator_kwargs:
+        init_res : 4
+        max_channel : 256
+    discriminator_obj_kwargs:
+        init_res : 4
+        max_channel : 256
+
+render:
+    dataset: KITTI360Render
+    batch_size: 1
+    frame_num: 1000
+    step_num: 8
+    render_fps: 10
+    ckpt_dir: '/data/jxhuang/experiments/urbangiraffe/trained_model/kitti-360/urbangiraffe_kitti360/None/24.pth'
+    task_list: ['move_forward_video']
+    # ['render_generalization_figure_kitti360']
+    render_frame_list: [3400, 5400, 6950, 7334, 272]
+    # [3400,5400,6950,7334,272]
+    # [6636,1733,3368,404784,205327,207717,206499,3400,1670,6227,8062,272,480,354,6950,788,5400,7334,7634,911358,502364,604197,210235,5287, 10697, 207712, 405074]
+    # Base12 [3400,1670,6227,8062,272,480,354,6950,788,5400,7334,7634]
+    # Extrs [911358,502364,604197,210235,5287]
+    # Video List ['elevate_camera_video', 'move_forward_video','building_lower_video'.'road2grass_video','building2tree_video','object_editing_video',]
+
+    use_trajectory: False
+    render_given_frame: True
+    
+    # Promising Frames [911358,502364,604197,3400,1670,6227,8062,272,480,354,6950,788,5400,7334,7634,]
+    # good frames [1670,3400,3400,6227,8062,272,480,354,6950,788,5400]
+    # Good buildings[1670(camera), 3400(object), 6227, 8062]
+    # Ablation [5400,604197]
+    # Good Tree [788,601897,210235]
+    # Good Road! [911358,502364,604197,3400,7334,7634,100560]
+    # Original [272,480,354,6950,406857]
+test:
+    batch_size: 4
+    use_occupancy: True
+
+
+train_dataset:
+    seq_list: [0]
+    # 'train', 'test', 'full'
+    split: 'train'
+    use_full: False
+
+test_dataset:
+    seq_list: [0]
+    split: 'test'
+    use_full: False
+

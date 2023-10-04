@@ -1,0 +1,90 @@
+task: clevr
+
+exp_name: 'gan2d_clevr'
+gpus: [2,3,4,5]
+is_debug: False
+####
+
+ratio: 1.
+trainer_type: urbangiraffe
+dataset_train_type: 2DGAN_clevr
+dataset_test_type: 2DGAN_clevr
+network_type: 2DGAN
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+evaluator_type: fid
+renderer_type: urbangiraffe
+
+    
+# Network
+# Network
+network_kwargs:
+    generator_type: 'StyleGAN2'
+    discriminator_type: 'StyleGAN2'
+    generator_test_type: 'StyleGAN2'
+
+    generator_kwargs:
+        z_dim_global: 512
+        # mapping_network_kwargs:
+        #     z_dim: 512                     # Input latent (Z) dimensionality, 0 = no latent.
+        #     c_dim: 0                      # Conditioning label (C) dimensionality, 0 = no label.
+        #     w_dim: 512                      # Intermediate latent (W) dimensionality.
+        #     num_layers: 2       # Number of mapping layers.
+        #     embed_features: 512     # Label embedding dimensionality, None = same as w_dim.
+        #     layer_features: 512     # Number of intermediate features in the mapping layers, )
+            
+        # synthesis_network_kwargs:
+        #     w_dim: 512                      # Intermediate latent (W) dimensionality.
+        #     # img_size: (94,352)             # Output image resolution.
+        #     img_channels: 3               # Number of color channels.
+        #     channel_max: 512     # Maximum number of channels in any layer.
+        #     use_final_sigmoid: True
+
+    discriminator_kwargs:
+        in_channels: 3
+        n_feat: 512 
+        img_size: 256
+train:
+    batch_size: 8
+    optim: 'adam'
+    lr: 2e-3
+    lr_d: 2e-3
+    weight_decay: 0.
+    epoch: 100
+
+    loss_weight:
+        gan: 1.0
+        gan_reg: 10.0
+        # diversity: 1.
+        
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+
+    # car_lr_mul: 1.
+    # building_lr_mul: 1.
+    # sky_lr_mul: 1.
+    # mapping_lr_mul: 0.01
+    
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 100
+    num_workers: 8
+    shuffle: True
+    #loss
+
+
+test:
+    ckpt_dir: ''
+    dataset: clevr
+    use_occupancy: False
+    batch_size: 32
+    frame_num: 10000
+    use_trajectory: False
+    test_given_frame: False
+    render_frame_list: [320,484,611,30621]
+
+

@@ -1,0 +1,90 @@
+task: 2dGAN
+
+exp_name: '2dGAN'
+gpus: [0,1,2,3]
+
+####
+ratio: 0.5
+trainer_type: urbangiraffe
+dataset_train_type: 2DGAN
+dataset_test_type: 2DGAN
+network_type: 2DGAN
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+evaluator_type: fid
+renderer_type: urbangiraffe
+
+
+render_obj: False
+use_patch_discriminator: False
+render_stuff: False
+render_sky: False
+use_occupancy_mask: False
+use_depth: False
+use_patch_discriminator: False
+
+# Network
+network_kwargs:
+    generator_type: 'stylegan'
+    discriminator_type: 'stylegan'
+    generator_test_type: 'stylegan'
+
+    generator_kwargs:
+        z_dim_global: 512
+
+        mapping_network_kwargs:
+            z_dim: 512                     # Input latent (Z) dimensionality, 0 = no latent.
+            c_dim: 0                      # Conditioning label (C) dimensionality, 0 = no label.
+            w_dim: 512                      # Intermediate latent (W) dimensionality.
+            num_layers: 2        # Number of mapping layers.
+            embed_features: 512     # Label embedding dimensionality, None = same as w_dim.
+            layer_features: 512     # Number of intermediate features in the mapping layers, )
+            
+        synthesis_network_kwargs:
+            w_dim: 512                      # Intermediate latent (W) dimensionality.
+            # img_size: (94,352)             # Output image resolution.
+            img_channels: 3               # Number of color channels.
+            channel_max: 512     # Maximum number of channels in any layer.
+            use_final_sigmoid: True
+
+    discriminator_kwargs:
+        in_channels: 3
+        n_feat: 512 
+        img_size: 512
+
+train:
+    batch_size: 8
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 5e-4
+    mapping_lr_mul: 0.01
+    beta1: 0.0
+    beta2: 0.99
+    weight_decay: 1e-4
+    epoch: 200
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 200
+    num_workers: 5
+    shuffle: True
+    loss_weight:
+        gan: 1.
+        gan_reg: 10.0
+        diversity: 1.
+        # l1_depht: 10.0
+        # kl: 0.05
+
+test:
+    dataset: KITTI360Val
+    batch_size: 8
+    frame_num: 10000
+
+train_dataset:
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'train'
+
+test_dataset:
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'test'

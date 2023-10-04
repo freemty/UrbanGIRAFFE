@@ -1,0 +1,159 @@
+task: urbangiraffe
+gpus: [0, 5]
+
+exp_name: 'urbangiraffe_default'
+
+####
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+
+evaluator_module: lib.evaluators.eval_miou
+visualizer_module: lib.visualizers.bboxnerf
+
+####
+fix_random: True
+random_seed: 42
+is_debuging: False
+
+ratio: 0.25
+max_obj_num: 2
+render_road: True
+render_obj: False
+render_uncountable: False
+render_sky: False
+seq_list: [3]
+valid_object: ['car']
+
+# trained model
+trained_model_dir: 'out/trained_model'
+trained_config_dir: 'out/trained_config'
+# recorder
+record_dir: 'out/record'
+result_dir: 'out/result'
+out_img_dir: 'out/img'
+
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'resnet'
+    generator_test_type: 'urbangiraffe'
+
+    generator_kwargs:
+        obj_decoder_type: 'giraffe'
+        road_decoder_type: 'style'
+        return_alpha_map: True
+        use_nerual_render: False
+        z_dim_global: 64
+        z_dim_obj: 128
+        z_dim_road: 128
+        z_dim_unc: 128
+
+        z_trainable: True
+
+        n_samples_obj: 24
+        n_samples_road: 5
+        n_sample_uncountable: 5
+        n_sample_sky: 5
+
+        obj_decoder_kwargs:
+            hidden_size: 128 
+            n_blocks: 4
+            n_blocks_view: 1
+            skips: [2]
+            use_viewdirs: True
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            z_dim: 128
+            rgb_out_dim: 3
+            final_sigmoid_activation: True
+            downscale_p_by: 2.
+            positional_encoding: "normal"
+            gauss_dim_pos: 10
+            gauss_dim_view: 4
+            gauss_std: 4.
+
+        road_decoder_kwargs:
+            n_layers: 8
+            channels: 128
+            out_channel: 3
+            z_dim: 128
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            skips: [4]
+
+        z_map_decoder_kwargs:
+            ngf: 64
+            num_upsampling_layers: 'normal'
+            aspect_ratio: 1.0
+            label_nc: 10
+            output_nc: 64
+
+
+        uncountable_decoder_kwargs:
+            n_layers: 4
+            channels: 128
+            out_channel: 3
+            z_dim: 128
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            skips: [2]
+
+        sky_decoder_kwargs:
+            n_layers: 2
+            channels: 64
+            out_channel: 3
+            z_dim: 16
+            n_freq_posenc: 10
+            n_freq_posenc_views: 4
+            skips: [4]
+
+    discriminator_kwargs:
+        in_dim: 3 
+        n_feat: 512 
+        img_size: 256
+    generator_test_kwargs:
+        aaa: 2
+
+
+
+ep_iter: 1000
+save_ep: 1
+eval_ep: 1
+save_latest_ep: 1
+log_interval: 1
+img_log_interval: 1000
+train:
+    batch_size: 4
+    optim: 'rmsprop'
+    lr: 2e-4
+    lr_d: 5e-4
+    weight_decay: 0.
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 6
+    shuffle: True
+    #loss
+    weight_rgb: 1.
+    weight_occupancy: 1 # 0.x1 means test new loss
+
+test:
+    dataset: KITTI360Val
+    batch_size: 1
+
+train_dataset:
+    data_root: 'datasets/KITTI-360_mini/'
+    seq_list: [3]
+    split: 'train'
+
+test_dataset:
+    data_root: 'datasets/KITTI-360_mini//'
+    seq_list: [3]
+    split: 'test'

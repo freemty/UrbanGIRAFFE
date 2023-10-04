@@ -1,0 +1,28 @@
+task: kitti-360
+exp_name: 'urbangiraffe_norecon'
+gpus: [2,3,4,5,0,1]
+is_debug: False
+####
+
+render_obj: True
+render_stuff: True
+render_sky: True
+use_occupancy_mask: True
+use_patch_occupancy_mask: True
+use_patch_discriminator: True
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 1e-4
+    weight_decay: 1e-4
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        gan_reg: 10.0
+
+    num_workers: 8
+
+    #loss
+

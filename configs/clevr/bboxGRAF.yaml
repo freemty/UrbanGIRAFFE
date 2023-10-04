@@ -1,0 +1,129 @@
+task: clevr
+
+exp_name: 'urbangiraffe_clevr'
+gpus: [2,3,4,5]
+is_debug: False
+####
+
+ratio: 1.
+super_resolution: 2
+patch_size: 64
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe_clevr
+dataset_test_type: urbangiraffe_clevr
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+use_patch_occupancy_mask: True
+use_patch_discriminator:  True
+render_obj: True
+render_stuff: True
+render_sky: True
+
+voxel_range: [[-8,8],[0,4],[-8,8]]
+stuff_semantic_list: ['ground', 'wall']
+    
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'stylegan'
+    discriminator_obj_type: 'stylegan_obj'
+    generator_test_type: 'urbangiraffe'
+
+    generator_kwargs:
+        obj_decoder_type: 'giraffe_ins'
+        stuff_decoder_type: 'stuff'
+        sky_decoder_type: 'sky'
+        z_grid_generator_type: 'SPADE3D'
+
+        return_alpha_map: True
+        use_neural_renderer: True
+        use_z_map: True
+        use_scale_condition: False
+        use_semantic_aware: False
+        z_dim_global: 256
+        semantic_dim: 16
+        z_dim_obj: 256
+        feature_dim: 16
+        local_feature_dim: 16
+
+        n_samples_obj: 12
+        n_samples_stuff: 2
+        n_sample_sky: 1
+        ray_voxel_sampling: True
+
+
+        z_grid_generator_kwargs:
+            h: 64
+            w: 64
+            l: 64
+            # ngf: 16
+            # z_dim: 64
+            max_nc: 64
+            nhidden: 64
+            oasis_zdim: 8
+            use_oasis: False
+            use_out_normalize: True
+            use_uncondition_layer: True
+            num_upsampling_layers: 'normal'
+            semantic_nc: 3
+            norm_G: 'spadeinstance5x5'
+
+        stuff_decoder_kwargs:
+            # in_channels: 16
+            hidden_channels: 128
+            n_block_num: 2
+            use_positonal_encoding: True
+            use_density_modulate: False
+            use_seg: False
+            use_pts: True
+            n_freq_posenc: 4
+            n_freq_posenc_pts: 10
+            n_freq_posenc_views: 4
+
+
+        obj_decoder_kwargs:
+            use_semantic_aware: True
+            use_viewdirs: False
+            giraffe_decoder_kwargs:
+                hidden_size: 128
+                n_blocks: 4
+                n_blocks_view: 1
+                skips: [2]
+                n_freq_posenc: 10
+                n_freq_posenc_views: 4
+                out_channels_rgb: 3 
+                out_channels_feat: 64
+                final_sigmoid_activation: True
+
+
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 1e-4
+    weight_decay: 1e-4
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        l2: 10.0
+        gan_obj: 1.
+        gan_reg: 10.0
+        perceptual: 2.0
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+    
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 100
+    num_workers: 0
+    shuffle: True
+    #loss
+

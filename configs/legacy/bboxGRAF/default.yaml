@@ -1,0 +1,172 @@
+task: urbangiraffe
+
+exp_name: 'urbangiraffe_default'
+
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+evaluator_module: fid
+renderer_module: urbangiraffe
+
+
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'stylegan'
+    generator_test_type: 'urbangiraffe'
+    use_alpha: False
+    use_depth: True
+    use_semantic_aware: True
+    generator_kwargs:
+        obj_decoder_type: 'eg3d'
+        uncountable_decoder_type: 'uncountable'
+        sky_decoder_type: 'sky'
+        z_grid_generator_type: 'SPADE3D'
+
+        return_alpha_map: True
+        use_neural_renderer: False
+        use_occupancy_mask: True
+        use_z_map: True
+        z_dim_global: 64
+        semantic_dim: 16
+        z_dim_obj: 64
+        feature_dim: 64
+        n_vox_intersection: 4
+        sample_before_intersection: False
+
+
+        z_trainable: False
+        n_samples_obj: 12
+        n_samples_uncountable: 12
+        n_sample_sky: 1
+        ray_voxel_sampling: True
+
+
+        z_grid_generator_kwargs:
+            h: 64
+            w: 64
+            l: 64
+            ngf: 32
+            z_dim: 64
+            oasis_zdim: 8
+            nhidden: 128
+            max_nc: 128
+            use_oasis: False
+            use_out_normalize: True
+            num_upsampling_layers: 'normal'
+            semantic_nc: 10
+            norm_G: 'spadeinstance5x5'
+            use_uncondition_layer: False
+
+        uncountable_decoder_kwargs:
+            in_channels: 32
+            n_block_num: 4
+            n_freq_posenc: 4
+            n_freq_posenc_views: 4
+            use_final_sigmoid: True
+            use_density_modulate: False
+            use_seg: False
+            use_positonal_encoding: True
+            use_viewdirs: False
+            use_pts: False
+            out_channels_c: 3
+            out_channels_feat: 64
+
+        triplane_generator_kwargs:
+            z_dim: 64
+            w_dim: 512
+            c_dim: 16 
+            img_channels: 48
+            img_resolution: 32
+            mapping_network_kwargs:                    # Intermediate latent (W) dimensionality.
+                num_layers: 2        # Number of mapping layers.
+                embed_features: 512     # Label embedding dimensionality, None = same as w_dim.
+                layer_features: 512     # Number of intermediate features in the mapping layers, )
+                
+            synthesis_network_kwargs:
+                channel_max: 512     # Maximum number of channels in any layer.
+                use_final_tanh: False
+                use_seamntic_aware_output: True
+
+
+        obj_decoder_kwargs:
+            # eg3d
+            n_features: 48
+            rgb_out_dim: 3
+            feature_out_dim: 64
+            # giraffe
+            z_dim: 64
+            use_semantic_aware: True
+            use_viewdirs: False
+            giraffe_decoder_kwargs:
+                hidden_size: 128
+                n_blocks: 4
+                n_blocks_view: 1
+                skips: [2]
+                n_freq_posenc: 10
+                n_freq_posenc_views: 4
+                out_channels_rgb: 3 
+                out_channels_feat: 64
+                final_sigmoid_activation: True
+
+
+        sky_decoder_kwargs:
+            style_dim: 64
+            out_channels_c: 3
+            out_channels_feat: 64
+            use_final_sigmoid: True
+
+
+        neural_render_kwargs:
+            in_channels: 64
+
+    discriminator_kwargs:
+        in_channels: 3
+        n_feat: 512 
+        img_size: 256
+
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 5e-4
+    beta1: 0.0
+    beta2: 0.99
+    weight_decay: 1e-4
+    mapping_lr_mul: 0.01
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 5
+    shuffle: True
+    use_trajectory: True
+    #loss
+    weight_rgb: 1.
+    weight_occupancy: 1 # 0.x1 means test new loss
+    frame_num: -1
+    loss_weight:
+        # l2: 10.0
+        gan: 1.
+        # pseudo_gan: 0.5
+        # perceptual: 10.0
+        # kl: 0.05
+render:
+    # dataset: KITTI360Val
+    batch_size: 2
+    frame_num: 10
+    task_list: ['move_forward']
+    # ckpt_dir: '/data/ybyang/out/trained_model/urbangiraffe/urbangiraffe/None/v1.pth'
+
+test:
+    ckpt_dir: ''
+    dataset: KITTI360Val
+    batch_size: 4
+    frame_num: 2000
+    use_trajectory: False
+

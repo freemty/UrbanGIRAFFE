@@ -1,0 +1,20 @@
+task: urbanGIRAFFE_2d
+
+exp_name: 'default'
+gpus: [4]
+
+
+use_semantic2d: True
+semantic2d_scale: 0.5
+
+network_kwargs:
+    generator_kwargs:
+        feature_type: 'SPADE' # 'SPADE', 'SPADE_free', 'SPADE_hybrid'
+        pts_type: 'global'
+
+
+        feature_map_generator_kwargs:
+            h: 47
+            w: 176
+            ngf: 16
+            num_upsampling_layers: 'small'

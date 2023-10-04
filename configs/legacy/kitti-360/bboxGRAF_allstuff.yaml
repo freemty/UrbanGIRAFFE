@@ -1,0 +1,105 @@
+task: kitti-360
+exp_name: 'urbangiraffe_allstuff'
+gpus: [2,3,4,5]
+is_debug: False
+####
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+####
+render_obj: False
+render_stuff: True
+render_sky: True
+train_sky: True
+use_patch_discriminator: False
+
+stuff_semantic_list: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    'car','truck','train','caravan','bus','trailer',
+    'fence','guard rail','trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light']
+    
+
+stuff_semantic_list_render: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    'car',
+    'fence','guard rail','trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light']
+    
+# Network
+
+
+train:
+    batch_size: 4
+    optim: 'adam'
+    lr: 1e-4
+    lr_d: 2e-4
+    weight_decay: 1e-4
+    epoch: 300
+    mapping_lr_mul: 0.1
+
+    loss_weight:
+        l2: 10.0
+        gan: 1.
+        gan_obj: 1.
+        gan_reg: 10.0
+        perceptual: 2.0
+        # l1_depht: 10.0
+        # kl: 0.05
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+
+    car_lr_mul: 1.
+    building_lr_mul: 1.
+    sky_lr_mul: 1.
+    
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 100
+    num_workers: 0
+    use_trajectory: True
+    shuffle: True
+    #loss
+
+# render:
+#     # dataset: KITTI360Val
+#     batch_size: 4
+#     step_num: 32
+#     frame_num: 10
+#     task_list: ['rotate_car','render_camera_elevation','move_forward','single_car_interpolate']
+#     # rotate_car',','move_forward', 'move_forward','change_fov','single_car_interpolate','single_car_interpolate']
+
+#     # [, ,'rotate_camera' ,'obj_interpolate', ,]
+#     ckpt_dir: ''
+#     # ckpt_dir: '/data/ybyang/out/trained_model/urbangiraffe/urbangiraffe/None/3.pth'
+#     # ckpt_dir: '/data/ybyang/out/trained_model/urbangiraffe/urbangiraffe/None/40.pth'
+#     use_trajectory: False
+#     render_given_frame: True
+#     render_frame_list: [272,480,354,6950,406857]
+#     # [947,6464,
+#     # render_frame_list: [320,484,611,300621]
+#     # [320, 
+
+    loss_weight:
+        gan: 1.0
+        l2: 10.0
+        perceptual: 3.0
+        gan_reg: 10.0
+
+train_dataset:
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'train'
+
+test_dataset:
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'test'
+
+render_dataset:
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'render'

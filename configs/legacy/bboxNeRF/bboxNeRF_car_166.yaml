@@ -1,0 +1,141 @@
+task: bboxNeRF
+
+gpus: [0]
+distributed: False
+
+exp_name: 'bboxNeRF_car'
+
+
+trainer_type: bboxNeRF
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: bboxNeRF
+loss_type: bboxNeRF
+optimizer_type: bboxNeRF
+
+evaluator_module: lib.evaluators.eval_fid
+visualizer_module: lib.visualizers.bboxnerf
+
+
+####
+fix_random: True
+random_seed: 4
+is_debuging: False
+
+ratio: 0.25
+max_obj_num: 5
+use_occupancy_mask: False
+render_road: False
+render_obj: True
+render_uncountable: False
+render_sky: False
+valid_object: ['car']
+
+#['building','truck','bus','caravan','trailer','train','motorcycle','bicycle','garage','stop','smallpole','lamp','trash bin','vending machine','box'] 
+# start: 0
+# train_frames: -1
+# test_frames: -1
+
+# trained model
+trained_model_dir: 'out/trained_model'
+trained_config_dir: 'out/trained_config'
+# recorder
+record_dir: 'out/record'
+result_dir: 'out/result'
+out_img_dir: 'out/img'
+
+
+# Network
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'stylegan'
+    generator_test_type: 'urbangiraffe'
+
+    generator_kwargs:
+        use_occupancy_mask: True
+        obj_decoder_type: 'eg3d'
+        neural_renderer_type: 'gancraftNR'
+        return_alpha_map: True
+        use_neural_renderer: False
+        use_z_map: True
+        z_dim_global: 256
+        semantic_dim: 16
+        z_dim_obj: 64
+        feature_dim: 16
+
+        z_trainable: True
+        n_samples_obj: 12
+
+        obj_decoder_kwargs:
+            n_features: 48
+            rgb_out_dim: 3
+            feature_out_dim: 16
+
+        triplane_generator_kwargs:
+            z_dim: 64
+            w_dim: 128
+            c_dim: 16 
+            img_channels: 48
+            img_resolution: 16
+            mapping_network_kwargs:
+                # z_dim: 512                     # Input latent (Z) dimensionality, 0 = no latent.
+                # c_dim: 16                      # Conditioning label (C) dimensionality, 0 = no label.
+                # w_dim: 512                      # Intermediate latent (W) dimensionality.
+                num_layers: 0        # Number of mapping layers.
+                embed_features: 128     # Label embedding dimensionality, None = same as w_dim.
+                layer_features: 128     # Number of intermediate features in the mapping layers, )
+                
+            synthesis_network_kwargs:
+                # w_dim: 512                      # Intermediate latent (W) dimensionality.
+                # img_size: (94,352)             # Output image resolution.
+                # img_channels: 96               # Number of color channels.
+                channel_max: 128     # Maximum number of channels in any layer.
+                use_final_tanh: False
+
+        neural_render_kwargs:
+            in_channels: 16
+
+    discriminator_kwargs:
+        in_channels: 4
+
+
+ep_iter: 1000
+save_ep: 1
+eval_ep: 1
+save_latest_ep: 1
+log_interval: 1
+img_log_interval: 100
+train:
+    frame_num: 1
+    batch_size: 1
+    mapping_lr_mul: 1.
+    optim: 'adam'
+    lr: 3e-4
+    lr_d: 1e-4
+    weight_decay: 1e-4
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 0
+    shuffle: True
+    #loss
+    weight_rgb: 1.
+    use_whole_rgb_loss: False
+    use_occupancy_loss: False
+    weight_occupancy: 1 # 0.x1 means test new loss
+
+test:
+    dataset: KITTI360Val
+    batch_size: 2
+    frame_num: 1000
+
+train_dataset:
+    seq_list: [0]
+    split: 'train'
+
+test_dataset:
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'test'

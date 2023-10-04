@@ -1,0 +1,231 @@
+
+
+# exp_name: 'urbangiraffe'
+gpus: [2,3,4,5,0,1]
+# distributed: True
+# DP: False
+img_size_raw: (376, 1408)
+is_kitti360: True
+is_debug: False
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+dataset_render_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+evaluator_type: fid
+renderer_type: urbangiraffe
+####
+split_rate: 0.2
+split_chunk_size: 200
+###
+
+ratio: 0.5
+super_resolution: 2
+patch_size: 128
+vertex_threshold: 5
+rate_threshold: 0.25
+
+render_bg: False
+render_obj: False
+render_road: False
+render_stuff: False
+render_uncountable: False
+render_sky: False
+train_sky: False
+use_occupancy_mask: False
+use_patch_occupancy_mask: True
+use_alpha: False
+use_depth: False
+use_patch_discriminator: True
+
+
+
+voxel_range: [[-32,32],[-14,2],[0,64]]
+#['building','truck','bus','caravan','trailer','train','motorcycle','bicycle','garage','stop','smallpole','lamp','trash bin','vending machine','box'] 
+
+
+inversion: False
+
+# # trained model
+z_far: 48
+z_far_render: 48
+z_sky: 128
+max_obj_num: 4
+valid_object: ['car']
+min_visible_pixel: 
+    car : 5000
+# Network
+stuff_semantic_list: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    # 'truck','train','caravan','bus','trailer',
+    'fence','guard rail',
+    # 'trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light'
+    ]
+stuff_semantic_list_render: [
+    'vegetation','terrain','ground','road', 'sidewalk','parking','rail track','building','gate','garage', 'bridge','tunnel','wall',
+    # 'truck','train','caravan','bus','trailer',
+    'fence','guard rail']
+    # ,'trash bin','box','lamp','smallpole','polegroup','stop','pole','traffic sign','traffic light']
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'stylegan'
+    discriminator_obj_type: 'stylegan_obj'
+    generator_test_type: 'urbangiraffe'
+    use_color_aug: False
+    use_depth: False
+    use_semantic_aware: False
+    multi_domain_D: True
+    aug_p: 0.
+
+    generator_kwargs:
+        obj_decoder_type: 'giraffe_ins_legacy'
+        stuff_decoder_type: 'stuff_legacy'
+        sky_decoder_type: 'sky_legacy'
+        z_grid_generator_type: 'SPADE3D_legacy'
+
+        return_alpha_map: True
+        use_neural_renderer: True
+        use_occupancy_mask: True
+        use_z_map: True
+        use_scale_condition: True
+        z_dim_global: 256
+        semantic_dim: 16
+        z_dim_obj: 256
+        feature_dim: 32
+        local_feature_dim: 16
+
+        n_samples_obj: 12
+        n_vox_intersection: 8
+        n_samples_stuff: 16
+        n_sample_sky: 1
+        n_vox_intersection_render: 24
+        n_samples_stuff_render: 24
+        n_samples_obj_render: 24
+        ray_voxel_sampling: True
+
+        z_grid_generator_kwargs:
+            init_res : 4
+            volume_res : [64,64,64]
+            max_channel : 512
+            out_channel : 16
+            semantic_channel : 42
+            spade_hidden_channel : 64
+            data_normalize_type : 'instance'
+            weight_normalize_type : 'equal_lr'
+            noise_type : 'oasis'
+            z_dim : 256
+            z_dim_oasis : 8
+            sparse_conv : False
+            kernel_size : 3
+            final_unconditional_layer : True
+            final_tanh : False
+
+
+        stuff_decoder_kwargs:
+            # in_channels: 16
+            n_block_num: 4
+            use_positonal_encoding: True
+            use_density_modulate: False
+            use_seg: False
+            use_pts: True
+            n_freq_posenc: 4
+            n_freq_posenc_pts: 10
+            n_freq_posenc_views: 4
+            # out_channels_feat: 32
+        sky_decoder_kwargs:
+            # style_dim: 64
+            out_channels_c: 3
+            # out_channels_feat: 32
+
+        obj_decoder_kwargs:
+            # giraffe
+            # z_dim: 64
+            use_semantic_aware: True
+            use_viewdirs: False
+            giraffe_decoder_kwargs:
+                hidden_size: 128
+                n_blocks: 8
+                n_blocks_view: 1
+                skips: [4]
+                n_freq_posenc: 10
+                n_freq_posenc_views: 4
+                out_channels_rgb: 3 
+                out_channels_feat: 64
+                final_sigmoid_activation: True
+
+
+    discriminator_obj_kwargs:
+        in_channels: 3
+        n_feat: 256
+        img_size: 128
+        use_pose_condition: True
+        mapping_layer_num: 2
+
+aug_type: 'ada'
+ada_p_init: 0.0
+ada_p_target: 0.6
+ada_interval: 4
+ada_kimg: 20
+train:
+    batch_size: 1
+    optim: 'adam'
+    lr: 2e-3
+    lr_d: 2e-3
+    weight_decay: 0.
+    epoch: 300
+
+    loss_weight:
+        gan: 1.0
+        l2: 10.
+        l1_depth: 10.
+        perceptual: 10.
+        gan_reg: 10.0
+        gan_obj: 1.0
+
+    perceptual_loss:
+        mode: 'vgg19'
+        layers: ['relu_3_1', 'relu_4_1', 'relu_5_1']
+        weights: [0.125, 0.25, 1.0]
+    
+    num_workers: 8
+    use_trajectory: False
+    shuffle: True
+    #loss
+
+
+test:
+    ckpt_dir: ''
+    dataset: KITTI360Val
+    batch_size: 4
+    frame_num: 5000
+    use_occupancy: False
+    shuffle: True
+    use_trajectory: False
+    test_given_frame: False
+    test_frame_list: [3854,9741,9742,9743,9744,9745,9746,9747]
+
+
+
+train_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/jxhuang/datasets/urbangiraffe/KITTI-360'
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'train'
+    use_full: False
+
+test_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/jxhuang/datasets/urbangiraffe/KITTI-360'
+    seq_list: [0,2,4,5,6,7,9,10]
+    split: 'test'
+    use_full: False
+
+render_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/jxhuang/datasets/urbangiraffe/KITTI-360'
+    seq_list: [0]
+    split: 'render'

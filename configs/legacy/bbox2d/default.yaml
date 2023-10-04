@@ -1,0 +1,117 @@
+task: urbanGIRAFFE_2d
+
+exp_name: 'default'
+gpus: [0,1,2,3,4,5]
+
+####
+
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+evaluator_module: lib.evaluators.eval_fid
+visualizer_module: lib.visualizers.bboxnerf
+
+
+####
+render_obj: True
+render_uncountable: True
+render_sky: True
+
+use_semantic2d: True
+semantic2d_scale: 0.125
+
+# trained model
+# trained_model_dir: 'out/trained_model'
+# trained_config_dir: 'out/trained_config'
+# # recorder
+# record_dir: 'out/record'
+# result_dir: 'out/result'
+# out_img_dir: 'out/img'
+
+
+# Network
+network_kwargs:
+    generator_type: 'bbox2d'
+    discriminator_type: 'stylegan'
+    generator_test_type: 'bbox2d'
+
+    use_alpha: False
+    use_depth: False
+    use_semantic_aware: False
+
+    generator_kwargs:
+        image_size: (94,352)
+        z_global_dim: 64
+        feature_dim: 16
+        return_alpha_map: False
+        use_occupancy_mask: False
+
+
+        feature_type: 'seg' # 'SPADE', 'SPADE_free', 'SPADE_hybrid'
+        pts_type: 'global'
+
+
+        feature_map_generator_kwargs:
+            h: 11
+            w: 44
+            ngf: 16
+            z_dim: 64
+            max_nc: 128
+            nhidden: 64
+            oasis_zdim: 8
+            use_oasis: True
+            use_out_normalize: False
+            num_upsampling_layers: 'small'
+            semantic_nc: 46
+            norm_G: 'spadeinstance5x5'
+
+        2d_decoder_kwargs:
+            n_layers: 8
+            channels: 128
+            out_channel: 3
+            z_dim: 16
+            n_freq_posenc: 4
+            skips: [4]
+
+    discriminator_kwargs:
+        in_channels: 3
+        n_feat: 512
+        img_size: 256
+
+
+train:
+    use_trajectory: False
+    batch_size: 16
+    optim: 'adam'
+    lr: 2e-4
+    lr_d: 2e-4
+    # mapping_lr_mul: 0.01
+    beta1: 0.0
+    beta2: 0.99
+    weight_decay: 1e-4
+    epoch: 200
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 200
+    num_workers: 5
+    shuffle: True
+
+test:
+    dataset: KITTI360Val
+    batch_size: 16
+    frame_num: 10000
+
+# train_dataset:
+#     data_root: '/data/ybyang/KITTI-360/'
+#     seq_list: [0,2,3,4,5,6,7,9,10]
+#     split: 'train'
+
+# test_dataset:
+#     data_root: '/data/ybyang/KITTI-360/'
+#     seq_list: [0,2,3,4,5,6,7,9,10]
+#     split: 'test'

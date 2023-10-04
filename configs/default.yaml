@@ -1,0 +1,267 @@
+
+# gpus: [4,5,6,7]
+# task: urbangiraffe
+# exp_name: 'urbangiraffe'
+
+# distributed: True
+# DP: False
+img_size_raw: (376, 1408)
+is_kitti360: True
+is_debug: False
+trainer_type: urbangiraffe
+dataset_train_type: urbangiraffe
+dataset_test_type: urbangiraffe
+dataset_render_type: urbangiraffe
+network_type: urbangiraffe
+loss_type: urbangiraffe
+optimizer_type: urbangiraffe
+
+evaluator_type: fid
+renderer_type: urbangiraffe
+####
+fix_random: True
+random_seed: 4
+
+
+ratio: 0.5
+super_resolution: 2
+
+patch_size: 128
+vertex_threshold: 5
+rate_threshold: 0.25
+
+max_obj_num: 5
+render_bg: False
+render_obj: False
+render_road: False
+render_stuff: False
+render_uncountable: False
+render_sky: False
+train_sky: False
+use_occupancy_mask: False
+use_alpha: False
+use_depth: False
+use_patch_discriminator: True
+max_obj_num: 4
+valid_object: ['car', building]
+min_visible_pixel: 
+    car : 1000
+    building : 10000
+
+voxel_range: [[-32,32],[-14,2],[0,64]]
+#['building','truck','bus','caravan','trailer','train','motorcycle','bicycle','garage','stop','smallpole','lamp','trash bin','vending machine','box'] 
+
+inversion: False
+
+
+# # trained model
+trained_model_dir: '/data/jxhuang/experiments/urbangiraffe/trained_model'
+trained_config_dir: '/data/jxhuang/experiments/urbangiraffe/trained_config'
+record_dir: '/data/jxhuang/experiments/urbangiraffe/record'
+result_dir: '/data/jxhuang/experiments/urbangiraffe/result'
+out_img_dir: '/data/jxhuang/experiments/urbangiraffe/img'
+out_tmp_img_dir: '/data/jxhuang/experiments/urbangiraffe/img/tmp'
+
+# trained model
+# trained_model_dir: '/root/autodl-tmp/ybyang/out/trained_model'
+# trained_config_dir: '/root/autodl-tmp/ybyang/trained_config'
+# record_dir: '/root/autodl-tmp/ybyang/out/record'
+# result_dir: '/root/autodl-tmp/ybyang/out/result'
+# out_img_dir: '/root/autodl-tmp/ybyang/out/img'
+use_data_augment: False
+
+z_far: 48
+# Network
+network_kwargs:
+    generator_type: 'urbangiraffe'
+    discriminator_type: 'stylegan'
+    generator_test_type: 'urbangiraffe'
+
+    multi_domain_D: False
+    use_semantic_aware: False
+    use_data_augment: True
+    use_color_aug: False
+    aug_p: 0.
+    generator_kwargs:
+        obj_decoder_type: 'giraffe_ins'
+        road_decoder_type: 'style'
+        uncountable_decoder_type: 'uncountable'
+        sky_decoder_type: 'sky'
+        z_map_generator_type: 'SPADE'
+        z_grid_generator_type: 'SPADE3D'
+        # nerual_renderer_type: 'giraffeNR'
+
+        return_alpha_map: True
+        use_neural_renderer: False
+        feature_dim: 16
+        use_z_map: True
+        use_occupancy_mask: False
+        z_dim_global: 64
+        semantic_dim: 16
+        z_dim_obj: 64
+
+        z_trainable: False
+        n_samples_obj: 12
+        n_samples_road: 3
+        n_samples_uncountable: 12
+        n_sample_sky: 1
+        ray_voxel_sampling: True
+
+
+        # triplane_generator_kwargs:
+        #     z_dim: 512
+        #     w_dim: 512
+        #     c_dim: 16 
+        #     img_channels: 48
+        #     img_resolution: 32
+        #     mapping_network_kwargs:
+        #         # z_dim: 512                     # Input latent (Z) dimensionality, 0 = no latent.
+        #         # c_dim: 16                      # Conditioning label (C) dimensionality, 0 = no label.
+        #         # w_dim: 512                      # Intermediate latent (W) dimensionality.
+        #         num_layers: 8        # Number of mapping layers.
+        #         embed_features: 512     # Label embedding dimensionality, None = same as w_dim.
+        #         layer_features: 512     # Number of intermediate features in the mapping layers, )
+                
+        #     synthesis_network_kwargs:
+        #         # w_dim: 512                      # Intermediate latent (W) dimensionality.
+        #         # img_size: (94,352)             # Output image resolution.
+        #         # img_channels: 96               # Number of color channels.
+        #         channel_max: 512     # Maximum number of channels in any layer.
+        #         use_final_tanh: False
+
+
+
+        # obj_decoder_kwargs:
+        #     z_dim: 64
+        #     use_semantic_aware: True
+        #     use_viewdirs: False
+        #     giraffe_decoder_kwargs:
+        #         hidden_size: 128
+        #         n_blocks: 4
+        #         n_blocks_view: 1
+        #         skips: [2]
+        #         n_freq_posenc: 10
+        #         n_freq_posenc_views: 4
+        #         out_channels_c: 3
+        #         out_channels_feat: 16
+        #         final_sigmoid_activation: True
+                # downscale_p_by: 2.
+                # positional_encoding: "normal"
+                # gauss_dim_pos: 10
+                # gauss_dim_view: 4
+                # gauss_std: 4.
+
+
+        # z_grid_generator_kwargs:
+        #     h: 64
+        #     w: 64
+        #     l: 64
+        #     ngf: 32
+        #     z_dim: 64
+        #     max_nc: 128
+        #     use_oasis: True
+        #     num_upsampling_layers: 'normal'
+        #     semantic_nc: 10
+        #     norm_G: 'spadeinstance5x5'
+
+        # uncountable_decoder_kwargs:
+        #     in_channels: 32
+        #     n_freq_posenc: 4
+        #     n_freq_posenc_views: 4
+            # use_final_sigmoid: True
+            # out_channels_c: 3
+            # out_channels_feat: 16
+            # use_seg: False
+
+        # sky_decoder_kwargs:
+        #     style_dim: 64
+        #     out_channels_c: 3
+        #     out_channels_feat: 16
+        #     use_final_sigmoid: True
+
+        # neural_render_kwargs:
+        #     in_channel: 16
+            
+    # discriminator_kwargs:
+    #     in_channels: 3
+    #     n_feat: 512 
+    #     img_size: 256
+
+# Ada aug
+augment_p: 0.1
+ada_target: 0.6
+ada_interva: 4
+ada_kimg: 10
+
+ep_iter: 1000
+save_ep: 1
+eval_ep: 5
+save_latest_ep: 1
+log_interval: 1
+img_log_interval: 100
+train:
+    batch_size: 24
+    optim: 'adam'
+    lr: 2e-3
+    lr_d: 2e-3
+    beta1: 0.0
+    beta2: 0.99
+    weight_decay: 1e-4
+    # mapping_lr_mul: 1.
+    # voxel_lr_mul: 1.
+    # car_lr_mul: 1.
+    # building_lr_mul: 1.
+    # sky_lr_mul: 1.
+    epoch: 80
+    scheduler:
+        type: 'exponential'
+        gamma: 0.5
+        decay_epochs: 80
+    num_workers: 5
+    shuffle: True
+    use_trajectory: False
+
+
+test:
+    ckpt_dir: ''
+    dataset: KITTI360Val
+    batch_size: 1
+    frame_num: 100
+    use_occupancy: False
+    shuffle: True
+    use_trajectory: False
+    test_given_frame: False
+    test_frame_list: [3854,9741]
+
+render:
+    dataset: KITTI360Render
+    render_fps: 10
+    batch_size: 4
+    frame_num: 10
+    step_num: 32
+    task_list: ['move_forward', 'move_forward_with_rotate','scene_interpolate','obj_interpolate','change_fov','single_car_interpolate','rotate_car']
+    use_trajectory: False
+    render_given_frame: True
+    render_frame_list: [320,484,611,4961]
+
+
+split_rate: 0.2
+split_chunk_size: 200
+
+train_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/jxhuang/datasets/urbangiraffe/KITTI-360'
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'train'
+
+test_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/jxhuang/datasets/urbangiraffe/KITTI-360'
+    seq_list: [0,2,3,4,5,6,7,9,10]
+    split: 'test'
+
+render_dataset:
+    # data_root: '/root/autodl-tmp/ybyang/KITTI-360/'
+    data_root: '/data/jxhuang/datasets/urbangiraffe/KITTI-360'
+    seq_list: [0]
+    split: 'render'

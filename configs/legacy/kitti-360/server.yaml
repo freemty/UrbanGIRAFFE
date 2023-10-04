@@ -1,0 +1,15 @@
+
+gpus: [0,1,2,3]
+trained_model_dir: '/root/autodl-tmp/out/trained_model'
+trained_config_dir: '/root/autodl-tmp/out/trained_config'
+record_dir: '/root/autodl-tmp/out/record'
+result_dir: '/root/autodl-tmp/out/result'
+out_img_dir: '/root/autodl-tmp/out/img'
+
+train_dataset:
+    data_root: '/root/autodl-tmp/KITTI-360/'
+
+test_dataset:
+    data_root: '/root/autodl-tmp/KITTI-360/'
+render_dataset:
+    data_root: '/root/autodl-tmp/KITTI-360/'
